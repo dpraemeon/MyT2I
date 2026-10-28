@@ -1,0 +1,6 @@
+numpy==1.26.4
+Pillow==11.2.1
+safetensors==0.7.0
+diffusers==0.35.2
+transformers==4.57.6
+sentencepiece==0.2.1

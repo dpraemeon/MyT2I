@@ -1,0 +1,83 @@
+{
+  "components": {
+    "vae": "stabilityai/sd-vae-ft-mse",
+    "text_encoder": "google/flan-t5-small",
+    "scaling_factor": 0.18215
+  },
+  "model": {
+    "image_size": 128,
+    "latent_channels": 4,
+    "width": 512,
+    "depth": 12,
+    "heads": 8,
+    "mlp_ratio": 4,
+    "cross_attention_layers": [
+      4,
+      8,
+      12
+    ],
+    "text_dim": 512,
+    "time_dim": 256,
+    "gate_hidden": 32
+  },
+  "training": {
+    "global_batch": 64,
+    "seed": 42,
+    "lr": 0.0002,
+    "text_lr": 0.0002,
+    "finetune_lr": 5e-05,
+    "betas": [
+      0.9,
+      0.999
+    ],
+    "weight_decay": 0.01,
+    "warmup_steps": 500,
+    "grad_clip": 1.0,
+    "ema_decay": 0.999,
+    "condition_dropout": 0.1
+  },
+  "recording": {
+    "every_hours": 5,
+    "count": 32,
+    "columns": 8,
+    "seed": 42,
+    "steps": 40,
+    "method": "heun",
+    "batch_size": 4,
+    "device": 0,
+    "memory_limit_gib": 3,
+    "min_free_gib": 4,
+    "poll_seconds": 30
+  },
+  "runtime": {
+    "nvidia": {
+      "communication": "nccl",
+      "precision": "fp16",
+      "attention": "sdpa",
+      "micro_batch": 16,
+      "foreach": true,
+      "compile": false,
+      "cache_device": "cpu"
+    },
+    "metax": {
+      "communication": "gloo_cpu",
+      "global_batch": 256,
+      "stages": {
+        "text": {
+          "micro_batch": 32,
+          "global_batch": 192
+        }
+      },
+      "environment": {
+        "MACA_MPS_MODE": "1",
+        "MACA_PRIORITY_QUEUE_POLICY": "0x111"
+      },
+      "precision": "fp16",
+      "attention": "sdpa",
+      "micro_batch": 64,
+      "foreach": true,
+      "compile": true,
+      "cache_device": "cuda"
+    }
+  }
+}
