@@ -6,9 +6,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 import torch
-from faceflow.flow import sample
-from faceflow.model import FaceFlowTiny
-from faceflow.runtime import autocast_context, detect_platform, load_checkpoint, prepare_environment
+from .flow import sample
+from .model import FaceFlowTiny
+from .runtime import autocast_context, detect_platform, load_checkpoint, prepare_environment
 
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp"}
@@ -28,7 +28,7 @@ def arguments():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--count", type=int, default=16)
     parser.add_argument("--columns", type=int, default=8)
-    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--noise-bank", help="Use fixed initial noise from a NumPy array.")
     parser.add_argument("--memory-limit-gib", type=float, help="Limit this process's GPU caching allocator.")
     parser.add_argument("--min-free-gib", type=float, default=0, help="Exit with code 75 if less GPU memory is free.")

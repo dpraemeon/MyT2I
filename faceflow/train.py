@@ -7,10 +7,10 @@ import time
 import numpy as np
 import torch
 import torch.distributed as dist
-from faceflow.data import load_cache, VAE_ID, SCALING_FACTOR
-from faceflow.flow import rf_loss, sample
-from faceflow.model import FaceFlowTiny
-from faceflow.runtime import (
+from .data import load_cache, VAE_ID, SCALING_FACTOR
+from .flow import rf_loss, sample
+from .model import FaceFlowTiny
+from .runtime import (
     setup_distributed, autocast_context, make_scaler, create_ema, update_ema,
     build_optimizer, restore_training, save_checkpoint, load_checkpoint,
     gather_rng_states, restore_rng_state,
@@ -21,7 +21,7 @@ from faceflow.runtime import (
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", default="config.json")
+    parser.add_argument("--config", default=str(Path(__file__).resolve().parents[1] / "configs" / "default.json"))
     parser.add_argument("--stage", choices=["unconditional", "text"], default="unconditional")
     parser.add_argument("--cache")
     parser.add_argument("--output", required=True)
@@ -77,11 +77,11 @@ def _render_preview(model, output, device, precision, vae_id, count):
     generator = torch.Generator(device=device).manual_seed(42)
     noise = torch.randn(count, 4, 16, 16, device=device, generator=generator)
     with autocast_context(device, precision):
-        latents = sample(model, noise, steps=32)
+        latents = torch.cat([sample(model, batch, steps=32) for batch in noise.split(2)])
     vae = AutoencoderKL.from_pretrained(vae_id).to(device).eval()
     images = []
     # VAE 按小批量解码，控制保存预览时的额外显存占用。
-    for latent in latents.split(4):
+    for latent in latents.split(2):
         decoded = vae.decode(latent.float() / SCALING_FACTOR).sample
         pixels = ((decoded.clamp(-1, 1) + 1) * 127.5).byte().permute(0, 2, 3, 1).cpu().numpy()
         images.extend(Image.fromarray(image) for image in pixels)
@@ -185,7 +185,7 @@ def main():
         cache["context"] = torch.randn(64, 64, 512, generator=generator, dtype=torch.float16)
         cache["mask"] = torch.arange(64)[None, :].expand(64, -1) < 48
         cache["caption_ids"] = torch.arange(len(cache["latents"])) % 64
-    assert args.stage != "text" or cache["context"] is not None, "Run prepare.py --text before text training"
+    assert args.stage != "text" or cache["context"] is not None, "Run python -m faceflow.prepare --text before text training"
     count = len(cache["latents"])
     assert count >= global_batch
     runtime.update(platform=env["platform"], torch_version=str(torch.__version__))

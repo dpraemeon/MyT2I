@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from faceflow.data import (
+from .data import (
     SCALING_FACTOR,
     TEXT_ENCODER_ID,
     VAE_ID,
@@ -14,7 +14,7 @@ from faceflow.data import (
     celeba_filenames,
     read_attributes,
 )
-from faceflow.runtime import detect_platform, prepare_environment
+from .runtime import detect_platform, prepare_environment
 
 
 @torch.inference_mode()
@@ -126,7 +126,7 @@ def prepare_text(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", default="config.json")
+    parser.add_argument("--config", default=str(Path(__file__).resolve().parents[1] / "configs" / "default.json"))
     parser.add_argument("--cache", required=True)
     parser.add_argument("--images")
     parser.add_argument("--partition")
@@ -136,8 +136,8 @@ def main():
     parser.add_argument("--text", action="store_true")
     parser.add_argument("--text-encoder", default=TEXT_ENCODER_ID)
     parser.add_argument("--max-length", type=int, default=64)
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--workers", type=int, default=4)
+    parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--workers", type=int, default=0)
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args()
     profile = json.loads(Path(args.config).read_text(encoding="utf-8"))["runtime"]

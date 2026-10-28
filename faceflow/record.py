@@ -16,7 +16,7 @@ import torch
 
 
 DEFAULTS = dict(every_hours=5, count=32, columns=8, seed=42, steps=40,
-                method="heun", batch_size=4, device=0, memory_limit_gib=3,
+                method="heun", batch_size=2, device=0, memory_limit_gib=3,
                 min_free_gib=4, poll_seconds=30)
 SERIES_KEYS = ("count", "columns", "seed", "steps", "method", "batch_size")
 
@@ -191,7 +191,7 @@ def render_pending(directory, index, settings, bank):
     for entry in index["entries"]:
         if entry["status"] == "complete":
             continue
-        command = [sys.executable, str(Path(__file__).with_name("sample.py")),
+        command = [sys.executable, "-m", "faceflow.sample",
                    "--checkpoint", str(directory / entry["checkpoint"]),
                    "--output", str(directory / entry["grid"]),
                    "--noise-bank", str(bank), "--platform", "auto"]
@@ -244,7 +244,7 @@ def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run", required=True)
     parser.add_argument("--log", required=True)
-    parser.add_argument("--config", default="config.json")
+    parser.add_argument("--config", default=str(Path(__file__).resolve().parents[1] / "configs" / "default.json"))
     parser.add_argument("--start-hour", type=float, default=10)
     parser.add_argument("--every-hours", type=float)
     parser.add_argument("--pid", type=int)
